@@ -276,11 +276,16 @@ public class DrawsanaView: UIView {
     guard let tool = tool else { return }
 
     let updateUncommittedShapeBuffers: () -> Void = {
-      self.transientBuffer = DrawsanaUtilities.renderImage(size: self.drawing.size) {
-        self.transientBuffer?.draw(at: .zero)
-        self.tool?.renderShapeInProgress(transientContext: $0)
-      }
-      self.drawingContentView.layer.contents = self.transientBuffer?.cgImage
+//      self.transientBuffer = DrawsanaUtilities.renderImage(size: self.drawing.size) {
+//        self.transientBuffer?.draw(at: .zero)
+//        self.tool?.renderShapeInProgress(transientContext: $0)
+//      }
+//      self.drawingContentView.layer.contents = self.transientBuffer?.cgImage
+
+        self.drawingContentView.layer.contents = DrawsanaUtilities.renderImage(size: self.drawing.size) {
+          self.persistentBuffer?.draw(at: .zero)
+          self.tool?.renderShapeInProgress(transientContext: $0)
+        }?.cgImage
 //      if self.tool?.isProgressive == true {
 //        self.transientBuffer = self.transientBufferWithShapeInProgress
 //      }
@@ -289,14 +294,14 @@ public class DrawsanaView: UIView {
     let point = sender.location(in: self)
     switch sender.state {
     case .began:
-      if let persistentBuffer = persistentBuffer, let cgImage = persistentBuffer.cgImage {
-        transientBuffer = UIImage(
-          cgImage: cgImage,
-          scale: persistentBuffer.scale,
-          orientation: persistentBuffer.imageOrientation)
-      } else {
-        transientBuffer = nil
-      }
+//      if let persistentBuffer = persistentBuffer, let cgImage = persistentBuffer.cgImage {
+//        transientBuffer = UIImage(
+//          cgImage: cgImage,
+//          scale: persistentBuffer.scale,
+//          orientation: persistentBuffer.imageOrientation)
+//      } else {
+//        transientBuffer = nil
+//      }
       tool.handleDragStart(context: toolOperationContext, point: point)
       delegate?.drawsanaView(self, didStartDragWith: tool)
       updateUncommittedShapeBuffers()
