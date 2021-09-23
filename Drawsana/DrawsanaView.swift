@@ -304,10 +304,14 @@ public class DrawsanaView: UIView {
 //      }
       tool.handleDragStart(context: toolOperationContext, point: point)
       delegate?.drawsanaView(self, didStartDragWith: tool)
-      updateUncommittedShapeBuffers()
+        autoreleasepool {
+            updateUncommittedShapeBuffers()
+        }
     case .changed:
       tool.handleDragContinue(context: toolOperationContext, point: point, velocity: sender.velocity ?? .zero)
+        autoreleasepool {
       updateUncommittedShapeBuffers()
+        }
     case .ended:
       if sender.hasExceededTapThreshold {
         tool.handleDragEnd(context: toolOperationContext, point: point)
@@ -395,11 +399,13 @@ public class DrawsanaView: UIView {
   }
 
   private func redrawAbsolutelyEverything() {
-    persistentBuffer = DrawsanaUtilities.renderImage(size: drawing.size) {
-      for shape in self.drawing.shapes {
-        shape.render(in: $0)
+      autoreleasepool {
+          persistentBuffer = DrawsanaUtilities.renderImage(size: drawing.size) {
+              for shape in self.drawing.shapes {
+                  shape.render(in: $0)
+              }
+          }
       }
-    }
     reapplyLayerContents()
   }
 }
