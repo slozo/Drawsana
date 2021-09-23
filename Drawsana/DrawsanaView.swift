@@ -311,7 +311,7 @@ public class DrawsanaView: UIView {
         tool.handleDragCancel(context: toolOperationContext, point: point)
         tool.handleTap(context: toolOperationContext, point: point)
       }
-      reapplyLayerContents()
+//      reapplyLayerContents()
     case .failed, .cancelled:
       tool.handleDragCancel(context: toolOperationContext, point: point)
       reapplyLayerContents()
