@@ -267,8 +267,13 @@ public class DrawsanaView: UIView {
   }
 
   // MARK: Gesture recognizers
-
+ private var isConsumingPan = false
   @objc private func didPan(sender: ImmediatePanGestureRecognizer) {
+      if isConsumingPan { return }
+      isConsumingPan = true
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+          self?.isConsumingPan = false
+      }
     autoreleasepool { _didPan(sender: sender) }
   }
 
