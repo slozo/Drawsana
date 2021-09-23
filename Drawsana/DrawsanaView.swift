@@ -276,14 +276,14 @@ public class DrawsanaView: UIView {
     guard let tool = tool else { return }
 
     let updateUncommittedShapeBuffers: () -> Void = {
-      self.transientBufferWithShapeInProgress = DrawsanaUtilities.renderImage(size: self.drawing.size) {
+      self.transientBuffer = DrawsanaUtilities.renderImage(size: self.drawing.size) {
         self.transientBuffer?.draw(at: .zero)
         self.tool?.renderShapeInProgress(transientContext: $0)
       }
-      self.drawingContentView.layer.contents = self.transientBufferWithShapeInProgress?.cgImage
-      if self.tool?.isProgressive == true {
-        self.transientBuffer = self.transientBufferWithShapeInProgress
-      }
+      self.drawingContentView.layer.contents = self.transientBuffer?.cgImage
+//      if self.tool?.isProgressive == true {
+//        self.transientBuffer = self.transientBufferWithShapeInProgress
+//      }
     }
 
     let point = sender.location(in: self)
@@ -311,7 +311,7 @@ public class DrawsanaView: UIView {
         tool.handleDragCancel(context: toolOperationContext, point: point)
         tool.handleTap(context: toolOperationContext, point: point)
       }
-//      reapplyLayerContents()
+      reapplyLayerContents()
     case .failed, .cancelled:
       tool.handleDragCancel(context: toolOperationContext, point: point)
       reapplyLayerContents()
