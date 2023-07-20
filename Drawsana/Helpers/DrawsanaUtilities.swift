@@ -27,15 +27,23 @@ class DrawsanaUtilities {
 
   /// Render an image using CoreGraphics
     class func renderImage(size: CGSize, scale:CGFloat = 0.0, _ code: (CGContext) -> Void) -> UIImage? {
-    UIGraphicsBeginImageContextWithOptions(size, false, scale)
-    guard let context = UIGraphicsGetCurrentContext() else {
-      UIGraphicsEndImageContext()
-      return nil
-    }
-    code(context)
-    let image = UIGraphicsGetImageFromCurrentImageContext()
-    UIGraphicsEndImageContext()
-    return image
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = scale
+        return UIGraphicsImageRenderer(size: size, format: format).image { context in
+            code(context.cgContext)
+        }
+
+        /*
+         UIGraphicsBeginImageContextWithOptions(size, false, scale)
+         guard let context = UIGraphicsGetCurrentContext() else {
+           UIGraphicsEndImageContext()
+           return nil
+         }
+         code(context)
+         let image = UIGraphicsGetImageFromCurrentImageContext()
+         UIGraphicsEndImageContext()
+         return image
+         */
   }
 
   /// Constrain a value to some min and max
