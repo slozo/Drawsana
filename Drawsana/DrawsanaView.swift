@@ -267,8 +267,13 @@ public class DrawsanaView: UIView {
   }
 
   // MARK: Gesture recognizers
-
+ private var isConsumingPan = false
   @objc private func didPan(sender: ImmediatePanGestureRecognizer) {
+      if isConsumingPan && sender.state != .ended { return }
+      isConsumingPan = true
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+          self?.isConsumingPan = false
+      }
     autoreleasepool { _didPan(sender: sender) }
   }
 
@@ -276,33 +281,42 @@ public class DrawsanaView: UIView {
     guard let tool = tool else { return }
 
     let updateUncommittedShapeBuffers: () -> Void = {
-      self.transientBufferWithShapeInProgress = DrawsanaUtilities.renderImage(size: self.drawing.size) {
-        self.transientBuffer?.draw(at: .zero)
-        self.tool?.renderShapeInProgress(transientContext: $0)
-      }
-      self.drawingContentView.layer.contents = self.transientBufferWithShapeInProgress?.cgImage
-      if self.tool?.isProgressive == true {
-        self.transientBuffer = self.transientBufferWithShapeInProgress
-      }
+//      self.transientBuffer = DrawsanaUtilities.renderImage(size: self.drawing.size) {
+//        self.transientBuffer?.draw(at: .zero)
+//        self.tool?.renderShapeInProgress(transientContext: $0)
+//      }
+//      self.drawingContentView.layer.contents = self.transientBuffer?.cgImage
+
+        self.drawingContentView.layer.contents = DrawsanaUtilities.renderImage(size: self.drawing.size) {
+          self.persistentBuffer?.draw(at: .zero)
+          self.tool?.renderShapeInProgress(transientContext: $0)
+        }?.cgImage
+//      if self.tool?.isProgressive == true {
+//        self.transientBuffer = self.transientBufferWithShapeInProgress
+//      }
     }
 
     let point = sender.location(in: self)
     switch sender.state {
     case .began:
-      if let persistentBuffer = persistentBuffer, let cgImage = persistentBuffer.cgImage {
-        transientBuffer = UIImage(
-          cgImage: cgImage,
-          scale: persistentBuffer.scale,
-          orientation: persistentBuffer.imageOrientation)
-      } else {
-        transientBuffer = nil
-      }
+//      if let persistentBuffer = persistentBuffer, let cgImage = persistentBuffer.cgImage {
+//        transientBuffer = UIImage(
+//          cgImage: cgImage,
+//          scale: persistentBuffer.scale,
+//          orientation: persistentBuffer.imageOrientation)
+//      } else {
+//        transientBuffer = nil
+//      }
       tool.handleDragStart(context: toolOperationContext, point: point)
       delegate?.drawsanaView(self, didStartDragWith: tool)
-      updateUncommittedShapeBuffers()
+        autoreleasepool {
+            updateUncommittedShapeBuffers()
+        }
     case .changed:
       tool.handleDragContinue(context: toolOperationContext, point: point, velocity: sender.velocity ?? .zero)
+        autoreleasepool {
       updateUncommittedShapeBuffers()
+        }
     case .ended:
       if sender.hasExceededTapThreshold {
         tool.handleDragEnd(context: toolOperationContext, point: point)
@@ -390,11 +404,13 @@ public class DrawsanaView: UIView {
   }
 
   private func redrawAbsolutelyEverything() {
-    persistentBuffer = DrawsanaUtilities.renderImage(size: drawing.size) {
-      for shape in self.drawing.shapes {
-        shape.render(in: $0)
+      autoreleasepool {
+          persistentBuffer = DrawsanaUtilities.renderImage(size: drawing.size) {
+              for shape in self.drawing.shapes {
+                  shape.render(in: $0)
+              }
+          }
       }
-    }
     reapplyLayerContents()
   }
 }
